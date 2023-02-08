@@ -81,3 +81,24 @@ export function getAboutMe() {
     method: "get"
   })
 }
+export function updateInfo(data:{avatar?:string|number,oldPassword?:string,newPassword?:string}) {
+ return request({
+    url: "updateInfo",
+    method: "post",
+   data,
+   transformRequest: [
+     function (oldData) {
+       // console.log(oldData)
+       let newStr = ""
+       for (const item in oldData) {
+         newStr += encodeURIComponent(item) + "=" + encodeURIComponent(oldData[item]) + "&"
+       }
+       newStr = newStr.slice(0, -1)
+       return newStr
+     }
+   ],
+   headers: {
+     "Content-Type": "application/x-www-form-urlencoded"
+   }
+ })
+}

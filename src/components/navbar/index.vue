@@ -21,7 +21,7 @@
     <template v-else>
       <el-row >
         <el-col :span="6">
-          <p  style="margin: 0;text-align: center;font-size: 7vw" class="hidden-sm-and-up">{{$route.name}}</p>
+          <p  style="margin: 0;text-align: center;font-size: 6vw" class="hidden-sm-and-up">{{$route.name}}</p>
         </el-col>
         <el-col :span="12" justify="center">
         </el-col>
@@ -55,12 +55,12 @@
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {RouteLocationNormalizedLoaded, useRoute} from "vue-router";
 import 'element-plus/theme-chalk/display.css'
-import LoginReg from "@/components/LoginReg/index.vue";
+import LoginReg from "@/components/LoginComponent/index.vue";
 import router from "@/router";
 import {useUserStore} from "@/store/modules/user";
 
 const activeName = ref('index')
-const windowWidth = ref(document.body.clientWidth > 500)
+const windowWidth = ref(document.body.clientWidth > 650)
 const handleMask = ref(false)
 
 const props = defineProps<{

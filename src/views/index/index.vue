@@ -3,11 +3,11 @@
   <div class="columns" :style="{width:  windowWidth > 800? '1100px': '95%'}" >
     <div :style="{width:  windowWidth > 600? '700px': 'auto'}">
       <template v-for="item of blogList">
-        <blog-card :tagsMap="tagsMap" :blogId="item.id" :title="item.title" :text="item.text" :tags="item.tags" :update-time="item.updateTime" :img-url="item.imgUrl"></blog-card>
+        <blog-card :tagsMap="tagsMap" :blogId="item.id+''" :title="item.title" :text="item.text" :tags="item.tags" :update-time="item.updateTime" :img-url="item.imgUrl"></blog-card>
       </template>
       <paging :callback="getBlog" @getMsg="blogPaging"></paging>
     </div>
-    <el-affix offset="80">
+    <el-affix :offset="80">
       <div style="margin-top: 14px" v-if="windowWidth > 800">
         <el-card style="width: 300px;height: 200px">
           <template #header>
