@@ -1,7 +1,18 @@
 <template>
   <div >
-    <div class="comment-card" :style="{width:  windowWidth > 700? '100%': '95%'}">
-      <el-input @blur="closeView" ref="editTask" autofocus="autofocus" type="textarea" style="width: 80%"  autosize show-word-limit maxlength="200" placeholder="请输入评论内容" v-model="commentContent"></el-input>
+    <div class="comment-card" :style="{ width: windowWidth > 700 ? '100%' : '95%' }">
+      <el-input
+        @blur="closeView"
+        ref="editTask"
+        autofocus="autofocus"
+        type="textarea"
+        style="width: 80%"
+        autosize
+        show-word-limit
+        maxlength="200"
+        placeholder="请输入评论内容"
+        v-model="commentContent"
+      />
       <el-button v-if="isLogin" @mousedown.stop.prevent="comment" plain>评论</el-button>
       <el-button v-else plain disabled>请先登录</el-button>
     </div>
@@ -9,32 +20,33 @@
 </template>
 
 <script lang="ts" setup>
-import {nextTick, ref, watch} from "vue";
-import {addComment} from "@/api/comment";
-import {ElMessage} from "element-plus";
+import { ref, watch } from "vue"
+import { addComment } from "@/api/comment"
+import { ElMessage } from "element-plus"
+import { useUserStore } from "@/store/modules/user"
 const editTask = ref()
 const props = defineProps<{
-  commentBlogId: string|number,
-  commentCommentId?: string|number,
-  commentUserName:string|number
-  watchClick:string|number
+  commentBlogId: string | number
+  commentCommentId?: string | number
+  commentUserName: string | number
+  watchClick: string | number
 }>()
-const showView = ref(true)
 const windowWidth = ref(document.body.clientWidth)
-const isLogin =ref(false)
-const accountRef = ref('')
-const commentContent = ref('')
+const isLogin = ref(false)
+const accountRef = ref("")
+const commentContent = ref("")
+const userInfo = useUserStore().userInfo
 const checkLogin = () => {
-  const userInfo = window.localStorage.getItem("userInfo")
-  if (userInfo){
+  const userInfo = useUserStore().userInfo
+  if (userInfo) {
     isLogin.value = true
-    accountRef.value = JSON.parse(userInfo).account
+    accountRef.value = userInfo.account
   }
 }
-const emit = defineEmits(['refreshComment','closeView'])
+const emit = defineEmits(["refreshComment", "closeView"])
 const comment = () => {
-if (commentContent.value.trim() == ''){
-    ElMessage.error('评论内容不能为空')
+  if (commentContent.value.trim() == "") {
+    ElMessage.error("评论内容不能为空")
     return
   }
   addComment({
@@ -43,26 +55,25 @@ if (commentContent.value.trim() == ''){
     commentCommentId: props.commentCommentId
   }).then(() => {
     ElMessage.success("评论成功")
-    emit('refreshComment')
+    emit("refreshComment")
   })
-
 }
-watch(() => props.watchClick, () => {
-  editTask.value.focus()
-})
+watch(
+  () => props.watchClick,
+  () => {
+    editTask.value.focus()
+  }
+)
 const closeView = () => {
-  emit('closeView')
-}
-const changeShow = () => {
-  showView.value = false
+  emit("closeView")
 }
 
 checkLogin()
 </script>
 
 <style scoped lang="scss">
-.comment-card{
-  :deep( .el-textarea__inner) {
+.comment-card {
+  :deep(.el-textarea__inner) {
     min-height: 50px !important;
     resize: none;
     line-height: normal;
@@ -75,5 +86,4 @@ checkLogin()
   background-color: #fff;
   padding: 10px;
 }
-
 </style>

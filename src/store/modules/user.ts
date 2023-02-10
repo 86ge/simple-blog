@@ -1,43 +1,71 @@
-import {Ref, ref, UnwrapRef} from "vue"
+import { Ref, ref, UnwrapRef } from "vue"
 import store from "@/store"
 import { defineStore } from "pinia"
 import { getToken, removeToken, setToken } from "@/utils/cache/cookies"
 import router, { resetRouter } from "@/router"
-import {type ILoginData, loginApi, getUserInfoApi, checkLoginApi} from "@/api/user"
-import {useRouter} from "vue-router";
+import { type ILoginData, loginApi, checkLoginApi, registerApi } from "@/api/user"
+
+interface userInfo {
+  account: string
+  addTime: string
+  avatar: string | number
+  avatarUrl: string
+  token: string
+  updatetime: string
+  userId: string | number
+}
 
 export const useUserStore = defineStore("user", () => {
   const token = ref<string>(getToken() || "")
   const roles = ref<string[]>([])
-
-  let isLogin:Ref<UnwrapRef<boolean|undefined>> = ref(undefined)
+  const userInfo = ref<userInfo>()
+  const isLogin: Ref<UnwrapRef<boolean | undefined>> = ref(undefined)
+  const test =ref()
 
   const checkLogin = () => {
-      return new Promise((resolve, reject) => {
-        checkLoginApi().then((res: any) => {
-          let data: string = res.msg
+    return new Promise((resolve, reject) => {
+      checkLoginApi()
+        .then((res: any) => {
+          const data: string = res.msg
           if (data.includes("未登录")) {
-            isLogin.value=false
+            isLogin.value = false
             window.localStorage.clear()
             reject(false)
           }
-          let item = window.localStorage.getItem("userInfo");
-          if(item) {
-            let info:any = JSON.parse(item)
-            if (info.msg.token) {
-              isLogin.value=true
-              setToken(info.msg.token)
+          const item = window.localStorage.getItem("userInfo")
+          if (item) {
+            const info: userInfo = JSON.parse(item)
+            if (info.token) {
+              userInfo.value = info
+              isLogin.value = true
+              setToken(info.token)
               resolve(true)
             }
-          }else{
+          } else {
             removeToken()
             reject(false)
           }
-        }).catch(() => {
+        })
+        .catch(() => {
           window.localStorage.clear()
           reject(false)
         })
-      })
+    })
+  }
+
+  const register = (loginData: ILoginData) => {
+    return new Promise((resolve, reject) => {
+      registerApi(loginData)
+        .then((res) => {
+          // @ts-ignore
+          if (res.msg.includes("成功")) {
+            resolve(true)
+          }
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
   }
 
   /** 登录 */
@@ -45,9 +73,12 @@ export const useUserStore = defineStore("user", () => {
     return new Promise((resolve, reject) => {
       loginApi({
         account: loginData.account,
-        password: loginData.password,
+        password: loginData.password
       })
         .then((res: any) => {
+          isLogin.value = true
+          userInfo.value = res.data
+          window.localStorage.setItem("userInfo", JSON.stringify(res.data))
           setToken(res.data.token)
           resolve(true)
         })
@@ -63,7 +94,7 @@ export const useUserStore = defineStore("user", () => {
     token.value = ""
     roles.value = []
     resetRouter()
-    router.push("/").then(()=>{
+    router.push("/").then(() => {
       location.reload()
     })
   }
@@ -74,7 +105,7 @@ export const useUserStore = defineStore("user", () => {
     roles.value = []
   }
 
-  return { isLogin,token, roles, login, logout, resetToken, checkLogin }
+  return { isLogin, token, roles, login, logout, resetToken, checkLogin, userInfo, register,test }
 })
 
 /** 在 setup 外使用 */

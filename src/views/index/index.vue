@@ -1,76 +1,90 @@
 <template>
-
-  <div class="columns" :style="{width:  windowWidth > 800? '1100px': '95%'}" >
-    <div :style="{width:  windowWidth > 600? '700px': 'auto'}">
-      <template v-for="item of blogList">
-        <blog-card :tagsMap="tagsMap" :blogId="item.id+''" :title="item.title" :text="item.text" :tags="item.tags" :update-time="item.updateTime" :img-url="item.imgUrl"></blog-card>
+  <div class="columns" :style="{ width: windowWidth > 800 ? '1100px' : '95%' }">
+    <div :style="{ width: windowWidth > 600 ? '700px' : 'auto' }">
+      <template v-for="item of blogList" :key="item.id">
+        <blog-card
+          :tagsMap="tagsMap"
+          :blogId="item.id + ''"
+          :title="item.title"
+          :text="item.text"
+          :tags="item.tags"
+          :update-time="item.updateTime"
+          :img-url="item.imgUrl"
+        />
       </template>
-      <paging :callback="getBlog" @getMsg="blogPaging"></paging>
+      <paging :callback="getBlog" @getMsg="blogPaging" />
     </div>
     <el-affix :offset="80">
       <div style="margin-top: 14px" v-if="windowWidth > 800">
-        <el-card style="width: 300px;height: 200px">
+        <el-card style="width: 300px; height: 200px">
           <template #header>
             <div style="text-align: center">
               <span>标签</span>
             </div>
           </template>
           <div>
-            <template v-for="item in tagsMap.values()">
-              <el-tag size="large" style="margin: 5px" >{{item}}</el-tag>
+            <template v-for="item in tagsMap.values()" :key="item">
+              <el-tag size="large" style="margin: 5px">{{ item }}</el-tag>
             </template>
           </div>
         </el-card>
       </div>
     </el-affix>
   </div>
-
-
-
 </template>
 
 <script lang="ts" setup>
-import 'element-plus/theme-chalk/display.css'
-import BlogCard from "@/components/BlogCard/index.vue";
-import {onBeforeMount, ref} from "vue";
-import {getBlog, getBlogTags} from "@/api/blog";
-import Paging from "@/components/Paging/index.vue";
+import "element-plus/theme-chalk/display.css"
+import BlogCard from "@/components/BlogCard/index.vue"
+import { onBeforeMount, ref } from "vue"
+import { getBlog, getBlogTags } from "@/api/blog"
+import Paging from "@/components/Paging/index.vue"
 
 interface Blog {
-  id: number|string,
-  title: string,
-  text: string,
-  tags: string,
-  updateTime: string,
+  id: number | string
+  title: string
+  text: string
+  tags: string
+  updateTime: string
   imgUrl: string
-
 }
 
 const windowWidth = ref(document.body.clientWidth)
 const tagsMap = ref(new Map<number, string>())
 const blogList = ref<Blog[]>([])
 onBeforeMount(() => {
-  getBlogTags({pageIndex: 1, pageSize: 10}).then((res: { data: Array<{ tagsId: number | string; tagsName: string }> }) => {
-    for (const dataKey in res.data) {
-      let tagsId = res.data[dataKey].tagsId
-      if (typeof tagsId === "string") tagsId = parseInt(tagsId)
-      tagsMap.value.set(tagsId, res.data[dataKey].tagsName)
+  getBlogTags({ pageIndex: 1, pageSize: 10 }).then(
+    (res: { data: Array<{ tagsId: number | string; tagsName: string }> }) => {
+      for (const dataKey in res.data) {
+        let tagsId = res.data[dataKey].tagsId
+        if (typeof tagsId === "string") tagsId = parseInt(tagsId)
+        tagsMap.value.set(tagsId, res.data[dataKey].tagsName)
+      }
     }
-  })
+  )
 })
-const blogPaging = (res: {data:Array<{introduction:string,id:number,markdown:string,tagsId:string,title:string,updateTime:string,img:string}>}) => {
-  if(windowWidth.value > 600)
-    blogList.value = []
-  for (let datum of res.data) {
-      blogList.value.push({
-        id: datum.id,
-        title: datum.title,
-        text: datum.introduction,
-        tags: datum.tagsId,
-        updateTime: datum.updateTime,
-        imgUrl: datum.img
-      })
-    }
+const blogPaging = (res: {
+  data: Array<{
+    introduction: string
+    id: number
+    markdown: string
+    tagsId: string
+    title: string
+    updateTime: string
+    img: string
+  }>
+}) => {
+  if (windowWidth.value > 600) blogList.value = []
+  for (const datum of res.data) {
+    blogList.value.push({
+      id: datum.id,
+      title: datum.title,
+      text: datum.introduction,
+      tags: datum.tagsId,
+      updateTime: datum.updateTime,
+      imgUrl: datum.img
+    })
+  }
 }
 </script>
 
@@ -138,10 +152,10 @@ const blogPaging = (res: {data:Array<{introduction:string,id:number,markdown:str
   }
 }
 
-.phone-view{
+.phone-view {
   padding: 0 12px;
 }
-.columns{
+.columns {
   justify-content: space-between;
   display: flex;
   margin: 0 auto;

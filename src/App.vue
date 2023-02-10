@@ -1,21 +1,25 @@
+<!-- eslint-disable prettier/prettier -->
 <script lang="ts" setup>
 import { useTheme } from "@/hooks/useTheme"
 import zhCn from "element-plus/lib/locale/lang/zh-cn"
-
+import NavBar from "@/components/navbar/index.vue"
+import { useRouter } from "vue-router";
+import { onBeforeMount, ref } from "vue";
+import { useUserStore } from "@/store/modules/user";
 const { initTheme } = useTheme()
 
-let router = useRouter();
+const router = useRouter()
 
-let r = ref()
-router.beforeEach((to, from, next) => {
+const r = ref()
+router.beforeEach((to: any, from: any, next: () => void) => {
   r.value =to
   next()
 })
 onBeforeMount(() => {
-  let userStore = useUserStore();
+  const userStore = useUserStore()
   userStore.checkLogin().then((res) => {
-    console.log('是否登录'+res);
-    console.log('hello world');
+    console.log("是否登录" + res)
+    console.log("hello world")
   });
 })
 
@@ -23,10 +27,6 @@ onBeforeMount(() => {
 initTheme()
 /** 将 Element-Plus 的语言设置为中文 */
 const locale = zhCn
-import NavBar from "@/components/navbar/index.vue"
-import {useRoute, useRouter} from "vue-router";
-import {onBeforeMount, onMounted, ref, watch} from "vue";
-import {useUserStore} from "@/store/modules/user";
 </script>
 
 <template>

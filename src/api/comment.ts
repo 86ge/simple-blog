@@ -10,7 +10,6 @@ export interface IPostData {
   context: string
   commentBlogId: string
   commentCommentId?: string
-
 }
 export function getCommentByBlogId(data: IGetData) {
   return request({
