@@ -22,135 +22,27 @@
       <template #dropdown>
         <el-dropdown-menu class="dropdown-menu">
           <el-dropdown-item @click="$router.push('/mine')">我的评论</el-dropdown-item>
-          <el-dropdown-item @click="showUpdateInfo">我的信息</el-dropdown-item>
+          <el-dropdown-item @click="handleClick('info')">我的信息</el-dropdown-item>
           <el-dropdown-item divided @click="useUserStore().logout()">退出</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
   </div>
-  <!-- 登录对话框 -->
-  <el-dialog v-model="loginView" title="登录" class="dialog" :width="dialogWidth">
-    <div>
-      <el-form
-        ref="loginFormRef"
-        :model="loginFormData"
-        :rules="loginFormRules"
-        label-width="100px"
-        label-position="left"
-      >
-        <el-form-item prop="account" label="用户名">
-          <el-input v-model="loginFormData.account" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="password" label="密码">
-          <el-input show-password v-model="loginFormData.password" placeholder="请输入" />
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <el-button @click="loginView = false">取消</el-button>
-      <el-button type="primary" @click="handleLogin">确认</el-button>
-    </template>
-  </el-dialog>
-  <!-- 注册对话框 -->
-  <el-dialog v-model="registerView" title="注册" class="dialog" :width="dialogWidth">
-    <div>
-      <el-form
-        ref="registerFormRef"
-        :model="registerFormData"
-        :rules="registerFormRules"
-        label-width="100px"
-        label-position="left"
-      >
-        <el-form-item prop="account" label="用户名">
-          <el-input v-model="registerFormData.account" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="password" label="密码">
-          <el-input show-password v-model="registerFormData.password" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="avatar" label="头像">
-          <el-select v-model="registerFormData.avatar" placeholder="请选择">
-            <el-option
-              style="height: auto !important"
-              v-for="item in avatarList"
-              :key="item[0]"
-              :label="item[0]"
-              :value="item[0]"
-            >
-              <div style="height: auto !important; text-align: center; margin-top: 5px">
-                <el-avatar size="default" shape="square" :src="item[1]" />
-              </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <el-button @click="registerView = false">取消</el-button>
-      <el-button type="primary" @click="handleRegister">确认</el-button>
-    </template>
-  </el-dialog>
-  <!-- 信息对话框 -->
-  <el-dialog v-model="myMsgView" title="我的信息" class="dialog" :width="dialogWidth">
-    <div>
-      <el-form
-        ref="myInfoFormRef"
-        :model="myInfoFormData"
-        :rules="myMsgFormRules"
-        label-width="100px"
-        label-position="left"
-      >
-        <el-form-item prop="account" label="用户名">
-          <el-input disabled v-model="myInfoFormData.account" placeholder="请输入" />
-        </el-form-item>
-        <el-divider />
-        <el-form-item prop="oldPassword" label="原密码">
-          <el-input show-password v-model="myInfoFormData.oldPassword" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="newPassword" label="修改新密码">
-          <el-input show-password v-model="myInfoFormData.newPassword" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="confirmPassword" label="确认新密码">
-          <el-input show-password v-model="myInfoFormData.confirmPassword" placeholder="请输入" />
-        </el-form-item>
-        <el-divider />
-        <el-form-item prop="avatar" label="头像">
-          <el-select v-model="myInfoFormData.avatar" placeholder="请选择">
-            <el-option
-              style="height: auto !important"
-              v-for="item in avatarList"
-              :key="item[0]"
-              :label="item[0]"
-              :value="item[0]"
-            >
-              <div style="height: auto !important; text-align: center; margin-top: 5px">
-                <el-avatar size="default" shape="square" :src="item[1]" />
-              </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <el-button @click="myMsgView = false">取消</el-button>
-      <el-button type="primary" @click="handleUpdateInfo">确认</el-button>
-    </template>
-  </el-dialog>
+  <my-dialog :useView="useView" @close="useView=''"></my-dialog>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue"
-import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { updateInfo } from "@/api/user"
-import { useUserStore } from "@/store/modules/user"
-import { getAvatarList } from "@/api/avatar"
-import { UserFilled } from "@element-plus/icons-vue"
+import {ref, watch} from "vue"
+import {useUserStore} from "@/store/modules/user"
+import {getAvatarList} from "@/api/avatar"
+import {UserFilled} from "@element-plus/icons-vue"
+import MyDialog from "@/components/LoginComponent/myDialog.vue";
+
 const avatarList = ref<Map<String, String>>()
-const loginView = ref(false)
-const registerView = ref(false)
-const myMsgView = ref(false)
 const phoneView = ref(document.body.clientWidth <= 650)
 const avatar = ref("")
 const docWidth = ref(document.body.clientWidth)
+const useView = ref("")
 
 function getAvatar() {
   getAvatarList({
@@ -167,121 +59,9 @@ function getAvatar() {
 }
 
 const handleClick = (type: string) => {
-  if (type == "login") loginView.value = true
-  else {
-    registerView.value = true
-    getAvatar()
-  }
+  useView.value = type
 }
-const loginFormRef = ref<FormInstance | null>(null)
-const loginFormData = reactive({
-  account: "",
-  password: ""
-})
-const loginFormRules: FormRules = reactive({
-  account: [{ required: true, min: 5, max: 16, trigger: "blur", message: "长度不得小于5位或大于16位" }],
-  password: [{ required: true, trigger: "blur", message: "请输入密码" }]
-})
-const registerFormRef = ref<FormInstance | null>(null)
-const registerFormData = reactive({
-  account: "",
-  password: "",
-  avatar: ""
-})
-const registerFormRules: FormRules = reactive({
-  account: [{ required: true, min: 5, max: 16, trigger: "blur", message: "长度不得小于5位或大于16位" }],
-  password: [{ required: true, trigger: "blur", min: 8, max: 32, message: "长度不得小于8位或大于32位" }],
-  avatar: [{ required: true, trigger: "blur", message: "请选择头像" }]
-})
-
-const myInfoFormRef = ref<FormInstance | null>(null)
-const myInfoFormData = reactive({
-  account: "",
-  oldPassword: "",
-  newPassword: "",
-  confirmPassword: "",
-  avatar: ""
-})
 const store = useUserStore()
-const showUpdateInfo = () => {
-  const item = store.userInfo
-  getAvatar()
-  if (!item) return
-  myInfoFormData.oldPassword = ""
-  myInfoFormData.newPassword = ""
-  myInfoFormData.confirmPassword = ""
-  myInfoFormData.avatar = item.avatar + ""
-  myInfoFormData.account = item.account
-  myMsgView.value = true
-}
-const validateNewPassword = (rule: any, value: string, callback: any) => {
-  if (!value && myInfoFormData.oldPassword == "") callback()
-  if (value.length < 8 || value.length > 32) {
-    callback(new Error("长度不得小于8位或大于32位"))
-  }
-  if (myInfoFormData.oldPassword == value) {
-    callback(new Error("新密码不能与旧密码相同"))
-  }
-}
-const myMsgFormRules: FormRules = reactive({
-  oldPassword: [{ min: 8, max: 32, trigger: "blur", message: "长度不得小于8位或大于32位" }],
-  newPassword: [{ validator: validateNewPassword, min: 8, max: 32, trigger: "blur" }],
-  confirmPassword: [
-    {
-      validator: (rule: any, value: any, callback: any) => {
-        if (myInfoFormData.newPassword != myInfoFormData.confirmPassword) callback(new Error("两次密码不相同"))
-      },
-      trigger: "blur"
-    }
-  ]
-})
-
-const handleLogin = () => {
-  loginFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      store.login(loginFormData).then((res) => {
-        // @ts-ignore
-        if (res) {
-          ElMessage.success("登陆成功")
-          isLogin.value = true
-          loginView.value = false
-          location.reload()
-        }
-      })
-    } else {
-      return false
-    }
-  })
-}
-const handleRegister = () => {
-  registerFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      useUserStore()
-        .register(registerFormData)
-        .then((res) => {
-          // @ts-ignore
-          if (res) {
-            ElMessage.success("注册成功,请登陆")
-            location.reload()
-          }
-        })
-    } else {
-      return false
-    }
-  })
-}
-
-const handleUpdateInfo = () => {
-  updateInfo(myInfoFormData).then((res) => {
-    // @ts-ignore
-    if (res.msg.includes("成功")) {
-      ElMessage.success("修改成功,请重新登陆")
-      myMsgView.value = false
-      store.logout()
-      location.reload()
-    }
-  })
-}
 
 const dialogWidth = ref("50%")
 const setDialogWidth = () => {

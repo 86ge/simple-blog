@@ -1,50 +1,54 @@
 <template>
-  <div class="timeline" style="max-width: 400px; padding: 30px; margin: 0 auto; background-color: #fff">
-    <el-timeline>
-      <el-timeline-item
-        :key="item"
-        class="blueLine"
-        type="primary"
-        hollow
-        :timestamp="item"
-        placement="top"
-        v-for="item of archiveList.keys()"
-      >
-        <el-timeline>
-          <el-timeline-item
-            :key="item2"
-            type="success"
-            hollow
-            placement="top"
-            :timestamp="item2"
-            class="greenLine"
-            v-for="item2 of archiveList.get(item).keys()"
-          >
-            <el-timeline>
-              <el-timeline-item
-                :key="item3.id"
-                type="warning"
-                hollow
-                @click="$router.push({ path: '/blog/' + item3.id })"
-                class="orangeLine"
-                v-for="item3 of archiveList.get(item).get(item2).values()"
-              >
-                <el-card shadow="hover" style="max-width: 250px">
-                  <p>{{ item3.title }}</p>
-                  <p>{{ item3.updateTime }}</p>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
-          </el-timeline-item>
-        </el-timeline>
-      </el-timeline-item>
-    </el-timeline>
+  <div>
+    <el-card class="timeline simple-blog-card"
+             style="border-radius: 15px;max-width: 400px; padding: 30px; margin: 0 auto; background-color: #fff">
+      <el-timeline>
+        <el-timeline-item
+          v-for="item of archiveList.keys()"
+          :key="item"
+          :timestamp="item"
+          class="blueLine"
+          hollow
+          placement="top"
+          type="primary"
+        >
+          <el-timeline>
+            <el-timeline-item
+              v-for="item2 of archiveList.get(item).keys()"
+              :key="item2"
+              :timestamp="item2"
+              class="greenLine"
+              hollow
+              placement="top"
+              type="success"
+            >
+              <el-timeline>
+                <el-timeline-item
+                  v-for="item3 of archiveList.get(item).get(item2).values()"
+                  :key="item3.id"
+                  class="orangeLine"
+                  hollow
+                  type="warning"
+                  @click="$router.push({ path: '/blog/' + item3.id })"
+                >
+                  <el-card shadow="hover" style="max-width: 250px">
+                    <p>{{ item3.title }}</p>
+                    <p>{{ item3.updateTime }}</p>
+                  </el-card>
+                </el-timeline-item>
+              </el-timeline>
+            </el-timeline-item>
+          </el-timeline>
+        </el-timeline-item>
+      </el-timeline>
+    </el-card>
   </div>
+
 </template>
 
 <script lang="ts" setup>
-import { onBeforeMount, ref } from "vue"
-import { getArchive } from "@/api/blog"
+import {onBeforeMount, ref} from "vue"
+import {getArchive} from "@/api/blog"
 
 interface Archive {
   id: number

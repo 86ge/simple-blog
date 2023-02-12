@@ -1,101 +1,109 @@
 <template>
-  <div class="blog-view columns" :style="{ width: windowWidth > 800 ? '1100px' : '95%' }">
-    <div :style="{ width: windowWidth > 600 ? '700px' : 'auto' }">
-      <div style="background-color: #fff" class="auto-line-feed blog-view">
+  <div class="columns" style="width: 100%;margin: 0 auto;justify-content: space-evenly;overflow-x: hidden;overflow-y: auto"
+       @scroll="columnsScroll">
+    <!--  博客主体  -->
+    <div style="width:  auto">
+      <el-card class="blog-view simple-blog-card auto-line-feed"
+               style="overflow: auto"
+      >
         <div class="blog-title">{{ blogTitle }}</div>
-        <md-editor :marked-heading-id="generateId" :editor-id="state.id" v-model="markdownToHtml" preview-only />
-        <div class="comment-button-box">
-          <el-link @click="showComment" class="comment-font" :icon="ChatSquare"
-            >{{ commentList.length }} 条评论
+        <md-editor v-model="markdownToHtml" :editor-id="state.id" :marked-heading-id="generateId" preview-only/>
+        <el-divider/>
+        <div class="comment-info" @click="showComment">
+          <el-link :icon="ChatSquare" class="comment-font"
+          >{{ commentList.length }} 条评论
           </el-link>
           <el-link class="comment-font">{{ updateTime }}</el-link>
         </div>
-        <transition name="el-fade-in-linear">
-          <div v-show="showCommentHandle" style="padding: 0 14px">
-            <div class="comment-context">
+        <div class="comment-context">
+          <transition name="el-fade-in-linear">
+            <div v-show="showCommentHandle">
               <post-comment comment-user-name="" @refreshComment="refreshComment"
-                            :comment-blog-id="blogIdRef" watch-click=""></post-comment>
-              <el-divider />
-              <template v-for="item of commentList" :key="item.blogId">
-                <comment
-                  :parent-id="''"
-                  @addComment="refreshComment"
-                  :select-comment-id="selectComment"
-                  v-if="item.commentCommentId == null"
-                  :item="item"
-                  :blog-id="blogIdRef"
-                />
-              </template>
+                            :comment-blog-id="blogIdRef" watch-click=""/>
             </div>
-          </div>
-        </transition>
-      </div>
-    </div>
-    <template v-if="windowWidth > 900">
-      <el-affix :offset="90">
-        <div style="height: auto; width: 300px">
-          <el-card>
-            <md-catalog :editor-id="state.id" @onClick="changeElement" :scroll-element="element" />
-          </el-card>
+          </transition>
+          <template v-for="item of commentList" :key="item.blogId">
+            <comment
+              v-if="item.commentCommentId == null && item.isDelete === 0"
+              :blog-id="blogIdRef"
+              :item="item"
+              :parent-id="''"
+              :select-comment-id="selectComment"
+              @addComment="refreshComment"
+            />
+          </template>
         </div>
-      </el-affix>
-    </template>
+      </el-card>
+    </div>
+    <!--  pc端目录    -->
+    <div style="position: sticky;top: 0">
+      <template v-if="clientWidth > 900">
+        <el-card class="simple-blog-card" shadow="always"
+                 style="position: sticky;top:0;height: auto; min-width: 200px;max-width: 20vw">
+          <md-catalog :editor-id="state.id" :marked-heading-id="generateId" :offsetTop="300" :scroll-element="element"
+                      @onClick="changeElement"/>
+        </el-card>
+      </template>
+    </div>
   </div>
-  <template v-if="windowWidth<=900">
+  <!-- 移动侧边栏 -->
+  <template v-if="clientWidth <= 900">
     <transition name="el-fade-in-linear">
-      <div v-show="showSidebar" style="float: right;margin-right: 18px">
-        <el-affix  position="bottom" :offset="80" >
-          <el-space direction="vertical" size="small">
-            <el-popover :visible="showMobileHanding" placement="left" :width="200" trigger="click">
-              <template #reference>
-                <div @click="showMobileHanding = !showMobileHanding" class="sidebar-icon">
-                  <el-icon :size="32">
-                    <Memo />
-                  </el-icon>
-                </div>
-              </template>
-              <div style="max-height: 400px">
-                <md-catalog :editor-id="state.id" @onClick="changeElement" :scroll-element="element" />
+      <div v-show="showSidebar" style="position: absolute;bottom: 30px;left: 5px;">
+        <el-space direction="vertical" size="large">
+          <el-popover :visible="showMobileHanding" :width="200" placement="left" trigger="click">
+            <template #reference>
+              <div class="sidebar-icon" @click="showMobileHanding = !showMobileHanding">
+                <el-icon :size="32">
+                  <Memo/>
+                </el-icon>
+              </div>
+            </template>
+            <div style="max-height: 400px">
+              <md-catalog :editor-id="state.id" :marked-heading-id="generateId" :offsetTop="100"
+                            :scroll-element="element"
+                            @onClick="changeElement"/>
               </div>
             </el-popover>
-            <div @click="" class="sidebar-icon">
+            <div class="sidebar-icon" @click="backTop">
               <el-icon :size="32">
-                <Top />
+                <Top/>
               </el-icon>
             </div>
           </el-space>
-        </el-affix>
       </div>
     </transition>
   </template>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { getBlogById } from "@/api/blog"
+// @ts-ignore
+import {ChatSquare} from "@element-plus/icons-vue"
+import {nextTick, onMounted, reactive, ref, watch} from "vue"
+import {useRoute, useRouter} from "vue-router"
+import {getBlogById} from "@/api/blog"
 import MdEditor from "md-editor-v3"
 import "md-editor-v3/lib/style.css"
-// @ts-ignore
-import { ChatSquare } from "@element-plus/icons-vue"
 import Comment from "@/components/Comment/commentCard.vue"
-import { getCommentByBlogId } from "@/api/comment"
-import PostComment from "@/components/Comment/postComment.vue";
+import {getCommentByBlogId} from "@/api/comment"
+import PostComment from "@/components/Comment/sendComment.vue";
 
-const windowWidth = ref(document.body.clientWidth)
+const clientWidth = ref(document.body.clientWidth)
+const windowWidth = ref(clientWidth.value > 800 ? clientWidth.value * 0.8 : '95%')
 const route = useRoute()
 const router = useRouter()
 const blogTitle = ref("")
+const isLoading = ref(true)
 const markdownToHtml = ref("")
 const updateTime = ref("")
 const showCommentHandle = ref(false)
 const commentList = ref([])
 const blogIdRef = ref("")
 const selectComment = ref("")
-const element = ref(document.documentElement)
+const element = ref('.columns')
 const showSidebar = ref(false)
 const showMobileHanding = ref(false)
-
+const columns = ref()
 const showComment = () => {
   showCommentHandle.value = !showCommentHandle.value
 }
@@ -104,36 +112,39 @@ const changeElement = (e: any, t: any) => {
   showMobileHanding.value = false
   router.push("/blog/" + route.params.blogId + "?heading=heading-" + t.index)
 }
+const columnsScroll = () => {
+  handler(function () {
+    let item = document.documentElement.getElementsByClassName('columns').item(0);
+    if (item) {
+      showSidebar.value = item.scrollTop > 300
+    }
+  })
+}
 //载入时获取有无标题id
 onMounted(() => {
   const catalogName: string = route.query.heading + ""
   if (catalogName.includes("heading-")) {
     nextTick(() => {
+      isLoading.value = false
       setTimeout(() => {
-        document.getElementById(catalogName)?.scrollIntoView({ block: "center", behavior: "smooth" })
-        document.documentElement
-          .getElementsByClassName("md-editor-catalog-active")
-          .item(0)
-          ?.setAttribute("class", "md-editor-catalog-link")
+        document.getElementById(catalogName)?.scrollIntoView({block: "center", behavior: "smooth"})
       }, 100)
     })
   }
 })
-window.onscroll = () => {
-  handler(function () {
-    showSidebar.value = document.documentElement.scrollTop > 300
-  })
-}
+
 let timer: string | number | NodeJS.Timeout | null | undefined = null
-function handler(value:Function) {
+
+function handler(value: Function) {
   if (timer) {
     clearTimeout(timer)
   }
   timer = setTimeout(() => {
     value();
-  }, 300)
+  }, 50)
 
 }
+
 const MdCatalog = MdEditor.MdCatalog
 const state = reactive({
   id: "my-editor"
@@ -157,7 +168,7 @@ watch(
     }
     if (newVal?.includes("heading-")) {
       setTimeout(() => {
-        document.getElementById(newVal + "")?.scrollIntoView({ block: "center", behavior: "smooth" })
+        document.getElementById(newVal + "")?.scrollIntoView({block: "center", behavior: "smooth"})
       }, 0)
     }
   }
@@ -188,37 +199,36 @@ const refreshComment = () => {
     commentList.value = res.data
   })
 }
-//@ts-ignore
- const debounce = (fn, t) => {
-  let delay = t || 500;
-  let timer: string | number | NodeJS.Timeout | null | undefined;
-  return function () {
-    let args = arguments;
-    if (timer) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      timer = null;
-      fn.apply(this, args);
-    }, delay);
-  };
-};
+const backTop = () => {
+  document.documentElement.querySelector('.blog-title')?.scrollIntoView({block: "center", behavior: "smooth"})
+}
 getBlog()
 </script>
 
 <style scoped lang="scss">
+@import url("@/styles/main.scss");
+
+@media screen and (max-width: 600px) {
+  .blog-view {
+    max-width: 95vw;
+  }
+}
+
+@media screen and (min-width: 600px) {
+  .blog-view {
+    max-width: 35vw;
+  }
+}
+
 .blog-view {
+  flex-direction: column;
+
   :deep(.md-editor-content) {
     padding: 10px;
   }
 
-  margin: 0.7rem auto;
-}
-
-.columns {
-  justify-content: space-between;
-  display: flex;
-  margin: 0 auto;
+  padding: 20px 0;
+  background-color: #fff;
 }
 
 .blog-title {
@@ -233,7 +243,7 @@ getBlog()
   word-break: break-all;
 }
 
-.comment-button-box {
+.comment-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -242,12 +252,12 @@ getBlog()
 }
 
 .comment-font {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .comment-card {
   :deep(.el-textarea__inner) {
-    min-height: 50px !important;
+    min-height: 40px !important;
     resize: none;
     line-height: normal;
     overflow-y: hidden;
@@ -270,10 +280,9 @@ getBlog()
   height: 40px;
   width: 40px;
   background-color: var(--el-bg-color-overlay);
-  box-shadow: var(--el-box-shadow-lighter);
   text-align: center;
   line-height: 40px;
-  color: #1989fa;
+  color: #bec2ca;
   justify-content: center;
   align-items: center;
 }

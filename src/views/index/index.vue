@@ -1,6 +1,6 @@
 <template>
-  <div class="columns" :style="{ width: windowWidth > 800 ? '1100px' : '95%' }">
-    <div :style="{ width: windowWidth > 600 ? '700px' : 'auto' }">
+  <div class="columns blog-list">
+    <div style="max-width: 700px">
       <template v-for="item of blogList" :key="item.id">
         <blog-card
           :tagsMap="tagsMap"
@@ -12,32 +12,30 @@
           :img-url="item.imgUrl"
         />
       </template>
-      <paging :callback="getBlog" @getMsg="blogPaging" />
+      <paging :callback="getBlog" @getMsg="blogPaging"/>
     </div>
-    <el-affix :offset="80">
-      <div style="margin-top: 14px" v-if="windowWidth > 800">
-        <el-card style="width: 300px; height: 200px">
-          <template #header>
-            <div style="text-align: center">
-              <span>标签</span>
-            </div>
-          </template>
-          <div>
-            <template v-for="item in tagsMap.values()" :key="item">
-              <el-tag size="large" style="margin: 5px">{{ item }}</el-tag>
-            </template>
+    <div v-if="windowWidth > 800" style="position: sticky;top:80px;margin-top: 14px">
+      <el-card class="simple-blog-card" style="flex-direction: column;width: 300px; height: 200px">
+        <template #header>
+          <div style="text-align: center">
+            <span>标签</span>
           </div>
+        </template>
+        <div>
+          <template v-for="item in tagsMap.values()" :key="item">
+            <el-tag size="large" style="margin: 5px">{{ item }}</el-tag>
+          </template>
+        </div>
         </el-card>
       </div>
-    </el-affix>
   </div>
 </template>
 
 <script lang="ts" setup>
 import "element-plus/theme-chalk/display.css"
 import BlogCard from "@/components/BlogCard/index.vue"
-import { onBeforeMount, ref } from "vue"
-import { getBlog, getBlogTags } from "@/api/blog"
+import {onBeforeMount, ref} from "vue"
+import {getBlog, getBlogTags} from "@/api/blog"
 import Paging from "@/components/Paging/index.vue"
 
 interface Blog {
@@ -89,6 +87,24 @@ const blogPaging = (res: {
 </script>
 
 <style scoped lang="scss">
+@import url("@/styles/main.scss");
+
+@media screen and (min-width: 800px) {
+  .blog-list {
+    width: 1100px;
+    justify-content: space-around;
+  }
+
+}
+
+@media screen and (max-width: 800px) {
+  .blog-list {
+    width: 95%;
+    justify-content: center;
+  }
+}
+
+
 .el-row {
   margin-bottom: 20px;
 }
@@ -154,10 +170,5 @@ const blogPaging = (res: {
 
 .phone-view {
   padding: 0 12px;
-}
-.columns {
-  justify-content: space-between;
-  display: flex;
-  margin: 0 auto;
 }
 </style>

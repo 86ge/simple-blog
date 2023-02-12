@@ -1,12 +1,12 @@
 <template>
   <div class="columns" :style="{ width: windowWidth > 800 ? '600px' : '95%' }">
-    <div>
+    <el-card class="simple-blog-card">
       <div v-for="item of commentList" :key="item.id">
         <blog-card :key="item.id" :commentId="item.id" :blogId="item.commentBlogId" :title="item.blogTitle"
-          :text="item.context" :user="item.account" :update-time="item.updateTime"
-          img-url="https://sponsors.vuejs.org/images/chrome_frameworks_fund.png" />
+                   :text="item.context" :update-time="item.updateTime" :user="item.account"
+                   img-url="https://sponsors.vuejs.org/images/chrome_frameworks_fund.png"/>
       </div>
-    </div>
+    </el-card>
     <div style="width: 100%; margin-top: 20px; margin-bottom: 50px; height: 100px">
       <paging @getMsg="getComment" :callback="getMyComment" />
     </div>
@@ -18,8 +18,8 @@
 
 <script setup lang="ts">
 import BlogCard from "@/components/MyCommentCard/index.vue"
-import { getMyComment } from "@/api/comment"
-import { ref } from "vue"
+import {getMyComment} from "@/api/comment"
+import {ref} from "vue"
 import Paging from "@/components/Paging/index.vue"
 
 const commentList = ref([])
